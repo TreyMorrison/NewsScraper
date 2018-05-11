@@ -12,6 +12,10 @@ var PORT = 3000;
 
 var app = express();
 
+var exphbs = require("express-handlebars");
+
+app.engine("handlebars", exphbs({defaultLayout: "main"}));
+app.set("view engine", "handlebars");
 
 app.use(logger("dev"));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -24,18 +28,21 @@ mongoose.connect("mongodb://localhost/week18Populater", {
 
 
 app.get("/scrape", function(req, res) {
-  axios.get("http://www.echojs.com/").then(function(response) {
+  axios.get("https://www.nytimes.com/").then(function(response) {
     var $ = cheerio.load(response.data);
 
-    $("article h2").each(function(i, element) {
+    $("article.story").each(function(i, element) {
       var result = {};
 
       result.title = $(this)
+        .children("h2.story-heading")
         .children("a")
         .text();
       result.link = $(this)
+        .children("h2.story-heading")
         .children("a")
         .attr("href");
+
 
       db.Article.create(result)
         .then(function(dbArticle) {
